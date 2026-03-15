@@ -25,15 +25,15 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nichochar/fast-a11y-py"
-Repository = "https://github.com/nichochar/fast-a11y-py"
+Homepage = "https://github.com/probeo-io/fast-a11y-py"
+Repository = "https://github.com/probeo-io/fast-a11y-py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/fast_a11y"]
 
 [tool.ruff]
 target-version = "py310"
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]

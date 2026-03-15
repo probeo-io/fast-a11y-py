@@ -7,7 +7,6 @@ incomplete[] rather than violations.
 
 from __future__ import annotations
 
-import math
 import re
 
 from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
@@ -161,9 +160,9 @@ def _parse_color(color: str) -> RGBA | None:
     return None
 
 
-def _hsl_to_rgb(h: float, s: float, l: float) -> tuple[int, int, int]:
+def _hsl_to_rgb(h: float, s: float, lightness: float) -> tuple[int, int, int]:
     if s == 0:
-        v = round(l * 255)
+        v = round(lightness * 255)
         return (v, v, v)
 
     def hue2rgb(p: float, q: float, t: float) -> float:
@@ -179,8 +178,8 @@ def _hsl_to_rgb(h: float, s: float, l: float) -> tuple[int, int, int]:
             return p + (q - p) * (2 / 3 - t) * 6
         return p
 
-    q = l * (1 + s) if l < 0.5 else l + s - l * s
-    p = 2 * l - q
+    q = lightness * (1 + s) if lightness < 0.5 else lightness + s - lightness * s
+    p = 2 * lightness - q
     return (
         round(hue2rgb(p, q, h + 1 / 3) * 255),
         round(hue2rgb(p, q, h) * 255),

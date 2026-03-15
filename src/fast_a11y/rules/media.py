@@ -239,7 +239,8 @@ class _NoAutoplayAudio:
                 result.incomplete.append(node)
                 result.check_details[id(node)] = NodeCheckDetail(
                     any=[make_check("no-autoplay-audio", "moderate",
-                        "Element has autoplay with controls -- verify audio duration is < 3 seconds or user can control playback")]
+                        "Element has autoplay with controls -- verify audio duration "
+                        "is < 3 seconds or user can control playback")]
                 )
             else:
                 result.violations.append(node)

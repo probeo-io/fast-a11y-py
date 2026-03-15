@@ -305,7 +305,8 @@ class _DuplicateIdAria:
                     result.violations.append(node)
                     result.check_details[id(node)] = NodeCheckDetail(
                         any=[make_check("duplicate-id-aria", "critical",
-                            f"Document has multiple elements referenced with ARIA with the same id attribute: {id_val}")]
+                            "Document has multiple elements referenced with ARIA "
+                            f"with the same id attribute: {id_val}")]
                     )
             else:
                 result.passes.append(node_list[0])

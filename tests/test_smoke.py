@@ -30,7 +30,10 @@ def test_catches_missing_alt_on_img() -> None:
 
 
 def test_passes_when_img_has_alt() -> None:
-    html = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><img src="photo.jpg" alt="A photo"></body></html>'
+    html = (
+        '<!DOCTYPE html><html lang="en"><head><title>Test</title></head>'
+        '<body><img src="photo.jpg" alt="A photo"></body></html>'
+    )
     results = fast_a11y(html)
 
     image_alt_v = next((v for v in results["violations"] if v["id"] == "image-alt"), None)
@@ -57,7 +60,10 @@ def test_catches_missing_document_title() -> None:
 
 
 def test_catches_nested_interactive_elements() -> None:
-    html = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><a href="/"><button>Click</button></a></body></html>'
+    html = (
+        '<!DOCTYPE html><html lang="en"><head><title>Test</title></head>'
+        '<body><a href="/"><button>Click</button></a></body></html>'
+    )
     results = fast_a11y(html)
 
     nested = next((v for v in results["violations"] if v["id"] == "nested-interactive"), None)
@@ -65,7 +71,11 @@ def test_catches_nested_interactive_elements() -> None:
 
 
 def test_catches_meta_viewport_disabling_zoom() -> None:
-    html = '<!DOCTYPE html><html lang="en"><head><title>Test</title><meta name="viewport" content="width=device-width, user-scalable=no"></head><body><p>Hello</p></body></html>'
+    html = (
+        '<!DOCTYPE html><html lang="en"><head><title>Test</title>'
+        '<meta name="viewport" content="width=device-width, user-scalable=no">'
+        '</head><body><p>Hello</p></body></html>'
+    )
     results = fast_a11y(html)
 
     viewport = next((v for v in results["violations"] if v["id"] == "meta-viewport"), None)
@@ -73,7 +83,10 @@ def test_catches_meta_viewport_disabling_zoom() -> None:
 
 
 def test_catches_heading_order_skip() -> None:
-    html = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><h1>Title</h1><h3>Subtitle</h3></body></html>'
+    html = (
+        '<!DOCTYPE html><html lang="en"><head><title>Test</title></head>'
+        '<body><h1>Title</h1><h3>Subtitle</h3></body></html>'
+    )
     results = fast_a11y(html)
 
     heading_order = next((v for v in results["violations"] if v["id"] == "heading-order"), None)
@@ -114,7 +127,10 @@ def test_filters_by_run_only_tags() -> None:
 
 
 def test_handles_duplicate_ids() -> None:
-    html = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><div id="foo">A</div><div id="foo">B</div></body></html>'
+    html = (
+        '<!DOCTYPE html><html lang="en"><head><title>Test</title></head>'
+        '<body><div id="foo">A</div><div id="foo">B</div></body></html>'
+    )
     results = fast_a11y(html)
 
     dup_id = next((v for v in results["violations"] if v["id"] == "duplicate-id"), None)

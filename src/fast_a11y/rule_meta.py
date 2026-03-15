@@ -125,7 +125,8 @@ RULE_META: dict[str, RuleMeta] = {
     "definition-list": _meta(
         "definition-list", "serious",
         ["cat.structure", "wcag2a", "wcag131"],
-        "<dl> elements must only directly contain properly-ordered <dt> and <dd> groups, <script>, <template> or <div> elements",
+        ("<dl> elements must only directly contain properly-ordered <dt> and <dd> groups, "
+         "<script>, <template> or <div> elements"),
         "Ensures <dl> elements are structured correctly",
     ),
     "dlitem": _meta(
@@ -410,7 +411,8 @@ RULE_META: dict[str, RuleMeta] = {
         "no-autoplay-audio", "moderate",
         ["cat.time-and-media", "wcag2a", "wcag142", "ACT"],
         "<video> or <audio> elements must not play automatically",
-        "Ensures <video> or <audio> elements do not autoplay audio for more than 3 seconds without a control mechanism to stop or mute the audio",
+        ("Ensures <video> or <audio> elements do not autoplay audio for more than 3 seconds "
+         "without a control mechanism to stop or mute the audio"),
     ),
     "video-caption": _meta(
         "video-caption", "critical",
@@ -438,7 +440,8 @@ RULE_META: dict[str, RuleMeta] = {
         "nested-interactive", "serious",
         ["cat.keyboard", "wcag2a", "wcag412"],
         "Interactive controls must not be nested",
-        "Ensures interactive controls are not nested as they are not always announced by screen readers or can cause focus problems",
+        ("Ensures interactive controls are not nested as they are not always announced "
+         "by screen readers or can cause focus problems"),
     ),
     "tabindex": _meta(
         "tabindex", "serious",
@@ -572,7 +575,8 @@ RULE_META: dict[str, RuleMeta] = {
         "color-contrast", "serious",
         ["cat.color", "wcag2aa", "wcag143", "ACT"],
         "Elements must meet minimum color contrast ratio thresholds",
-        "Ensures the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        ("Ensures the contrast between foreground and background colors meets "
+         "WCAG 2 AA minimum contrast ratio thresholds"),
     ),
 
     # Presentation role
@@ -580,7 +584,8 @@ RULE_META: dict[str, RuleMeta] = {
         "presentation-role-conflict", "minor",
         ["cat.aria", "best-practice"],
         "Elements with role none or presentation should not have global ARIA or tabindex",
-        "Elements marked as presentational should not have global ARIA or tabindex to ensure they are truly removed from the accessibility tree",
+        ("Elements marked as presentational should not have global ARIA or tabindex "
+         "to ensure they are truly removed from the accessibility tree"),
     ),
 
     # Label-title-only
