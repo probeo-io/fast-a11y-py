@@ -755,7 +755,7 @@ class _AriaRoledescription:
         return result
 
 
-def _aria_name_check(rule_id: str, impact: ImpactValue, target_roles: list[str]) -> object:
+def _aria_name_check(rule_id: str, impact: ImpactValue, target_roles: list[str]) -> RuleCheck:
     """Create an accessible name check rule for a set of roles."""
 
     class _Rule:

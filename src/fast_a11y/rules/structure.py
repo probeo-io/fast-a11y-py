@@ -296,9 +296,9 @@ class _DuplicateIdAria:
             return result
         id_map: dict[str, list[FastNode]] = defaultdict(list)
         for node in nodes:
-            id_val: str | None = node.attrs.get("id")
-            if id_val and id_val in referenced_ids:
-                id_map[id_val].append(node)
+            node_id = node.attrs.get("id")
+            if node_id and node_id in referenced_ids:
+                id_map[node_id].append(node)
         for id_val, node_list in id_map.items():
             if len(node_list) > 1:
                 for node in node_list:

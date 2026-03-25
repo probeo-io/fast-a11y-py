@@ -63,7 +63,7 @@ class _LandmarkOneMain:
         return result
 
 
-def _no_duplicate_landmark(rule_id: str, role: str) -> object:
+def _no_duplicate_landmark(rule_id: str, role: str) -> RuleCheck:
     """Create a no-duplicate landmark rule."""
 
     class _Rule:
@@ -94,7 +94,7 @@ def _no_duplicate_landmark(rule_id: str, role: str) -> object:
     return _Rule()
 
 
-def _top_level_landmark(rule_id: str, role: str) -> object:
+def _top_level_landmark(rule_id: str, role: str) -> RuleCheck:
     """Create a top-level landmark rule."""
 
     class _Rule:
