@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import (
     FastNode,
     find_by_tag,
@@ -289,7 +289,7 @@ class _Region:
         return result
 
 
-navigation_rules = [
+navigation_rules: list[RuleCheck] = [
     _LinkName(),
     _FrameTitle(),
     _FrameTitleUnique(),

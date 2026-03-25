@@ -11,7 +11,7 @@ aria-conditional-attr, presentation-role-conflict
 from __future__ import annotations
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import (
     FastNode,
     find_by_tag,
@@ -1017,7 +1017,7 @@ class _PresentationRoleConflict:
         return result
 
 
-aria_rules = [
+aria_rules: list[RuleCheck] = [
     _AriaAllowedAttr(),
     _AriaHiddenBody(),
     _AriaHiddenFocus(),

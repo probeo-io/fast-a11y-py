@@ -4,7 +4,7 @@ table-duplicate-name, table-fake-caption, scope-attr-valid
 
 from __future__ import annotations
 
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, get_node_text, is_hidden_or_ancestor_hidden
 
 
@@ -314,7 +314,7 @@ class _ScopeAttrValid:
         return result
 
 
-table_rules = [
+table_rules: list[RuleCheck] = [
     _TdHeadersAttr(),
     _ThHasDataCells(),
     _TdHasHeader(),

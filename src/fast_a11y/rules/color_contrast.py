@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, TextNode, get_text_content, is_hidden_or_ancestor_hidden
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -498,4 +498,4 @@ class _ColorContrast:
         return result
 
 
-color_contrast_rules = [_ColorContrast()]
+color_contrast_rules: list[RuleCheck] = [_ColorContrast()]

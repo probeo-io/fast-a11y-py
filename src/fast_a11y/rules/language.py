@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, is_hidden_or_ancestor_hidden
 
 # ISO 639-1 primary language subtags.
@@ -158,7 +158,7 @@ class _ValidLang:
         return result
 
 
-language_rules = [
+language_rules: list[RuleCheck] = [
     _HtmlHasLang(),
     _HtmlLangValid(),
     _HtmlXmlLangMismatch(),

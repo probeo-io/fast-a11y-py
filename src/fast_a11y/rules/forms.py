@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, is_hidden_or_ancestor_hidden
 
 # Autocomplete tokens from the HTML spec.
@@ -289,7 +289,7 @@ class _LabelTitleOnly:
         return result
 
 
-form_rules = [
+form_rules: list[RuleCheck] = [
     _Label(),
     _SelectName(),
     _InputButtonName(),

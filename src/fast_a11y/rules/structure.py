@@ -9,7 +9,7 @@ import re
 from collections import defaultdict
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import (
     FastNode,
     find_by_tag,
@@ -296,7 +296,7 @@ class _DuplicateIdAria:
             return result
         id_map: dict[str, list[FastNode]] = defaultdict(list)
         for node in nodes:
-            id_val = node.attrs.get("id")
+            id_val: str | None = node.attrs.get("id")
             if id_val and id_val in referenced_ids:
                 id_map[id_val].append(node)
         for id_val, node_list in id_map.items():
@@ -391,7 +391,7 @@ class _PageHasHeadingOne:
         return result
 
 
-structure_rules = [
+structure_rules: list[RuleCheck] = [
     _DocumentTitle(),
     _DefinitionList(),
     _DlItem(),

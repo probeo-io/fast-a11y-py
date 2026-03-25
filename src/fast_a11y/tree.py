@@ -243,7 +243,7 @@ def get_role(node: FastNode) -> str | None:
     mapping = implicit_roles.get(node.tag)
     if callable(mapping):
         return mapping(node)
-    return mapping  # type: ignore[return-value]
+    return mapping
 
 
 def _input_implicit_role(node: FastNode) -> str | None:

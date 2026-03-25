@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, is_hidden_or_ancestor_hidden
 
 
@@ -279,7 +279,7 @@ class _VideoCaption:
         return result
 
 
-media_rules = [
+media_rules: list[RuleCheck] = [
     _Blink(),
     _Marquee(),
     _MetaRefresh(),

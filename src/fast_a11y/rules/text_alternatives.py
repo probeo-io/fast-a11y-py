@@ -5,7 +5,7 @@ role-img-alt, svg-img-alt, area-alt, server-side-image-map
 from __future__ import annotations
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, get_node_text, is_hidden_or_ancestor_hidden
 
 
@@ -199,7 +199,7 @@ class _ServerSideImageMap:
         return result
 
 
-text_alternative_rules = [
+text_alternative_rules: list[RuleCheck] = [
     _ImageAlt(),
     _InputImageAlt(),
     _ObjectAlt(),

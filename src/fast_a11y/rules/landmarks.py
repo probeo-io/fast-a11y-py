@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from ..accessible_name import get_accessible_name
-from ..rule_engine import NodeCheckDetail, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
 from ..tree import FastNode, find_by_tag, get_role, is_hidden_or_ancestor_hidden
 
 LANDMARK_ROLES = frozenset({
@@ -171,7 +171,7 @@ class _LandmarkUnique:
         return result
 
 
-landmark_rules = [
+landmark_rules: list[RuleCheck] = [
     _LandmarkOneMain(),
     _no_duplicate_landmark("landmark-no-duplicate-main", "main"),
     _no_duplicate_landmark("landmark-no-duplicate-banner", "banner"),
