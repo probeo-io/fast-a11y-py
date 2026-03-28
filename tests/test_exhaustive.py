@@ -1228,3 +1228,43 @@ class TestValidPage:
     def test_inapplicable_rules_exist(self) -> None:
         results = fast_a11y(_wrap("<p>Simple page</p>"))
         assert len(results["inapplicable"]) > 0
+
+
+class TestRecursionRegression:
+    """Regression tests for RecursionError in FastNode equality.
+
+    Table cells without IDs that share the same tag caused infinite
+    recursion when get_selector() compared nodes via the default
+    dataclass __eq__, which walked parent/child references.
+    """
+
+    def test_table_cells_without_ids_no_recursion(self) -> None:
+        html = _wrap("""
+        <table>
+          <tr><td>A</td><td>B</td><td>C</td></tr>
+          <tr><td>D</td><td>E</td><td>F</td></tr>
+          <tr><td>G</td><td>H</td><td>I</td></tr>
+        </table>
+        """)
+        # This would raise RecursionError before the fix
+        results = fast_a11y(html)
+        assert "violations" in results
+
+    def test_large_table_no_recursion(self) -> None:
+        rows = "".join(
+            f"<tr>{''.join(f'<td>{r}_{c}</td>' for c in range(10))}</tr>"
+            for r in range(20)
+        )
+        html = _wrap(f"<table>{rows}</table>")
+        results = fast_a11y(html)
+        assert "violations" in results
+
+    def test_get_selector_disambiguates_same_tag_siblings(self) -> None:
+        from fast_a11y.tree import build_tree, get_selector
+
+        html = "<table><tr><td>A</td><td>B</td><td>C</td></tr></table>"
+        nodes = build_tree(html)
+        td_nodes = [n for n in nodes if n.tag == "td"]
+        selectors = [get_selector(n) for n in td_nodes]
+        # Each cell should get a unique selector via nth-child
+        assert len(selectors) == len(set(selectors))

@@ -12,9 +12,13 @@ from html.parser import HTMLParser
 from typing import Any, Callable
 
 
-@dataclass
+@dataclass(eq=False)
 class FastNode:
-    """A node in the parsed HTML tree."""
+    """A node in the parsed HTML tree.
+
+    Uses identity-based equality to avoid infinite recursion
+    through parent/child references.
+    """
 
     tag: str
     attrs: dict[str, str]
@@ -22,6 +26,12 @@ class FastNode:
     children: list[FastNode] = field(default_factory=list, repr=False)
     child_nodes: list[Any] = field(default_factory=list, repr=False)
     depth: int = 0
+
+    def __eq__(self, other: object) -> bool:
+        return self is other
+
+    def __hash__(self) -> int:
+        return id(self)
 
 
 @dataclass
