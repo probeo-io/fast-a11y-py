@@ -152,6 +152,13 @@ results = fast_a11y(html)
 
 Same output format. Synchronous. No browser. 100x less memory.
 
+## See Also
+
+| Package | Description |
+|---|---|
+| [@probeo/fast-a11y](https://github.com/probeo-io/fast-a11y) | TypeScript version of this package |
+| [workflow-py](https://github.com/probeo-io/workflow-py) | Stage-based pipeline engine -- use fast-a11y as a step |
+
 ## License
 
 MIT
