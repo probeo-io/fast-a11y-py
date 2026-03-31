@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from fast_a11y import AxeResults, RunOptions, fast_a11y
 
-
 # ── Helpers ───────────────────────────────────────────────────────────
 
 
