@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fast-a11y-py"
-version = "0.1.0"
+version = "0.1.1"
 description = "Fast, zero-DOM accessibility checker with axe-core compatible output"
 readme = "README.md"
 license = "MIT"
