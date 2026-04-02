@@ -1,5 +1,11 @@
 # fast-a11y
 
+[![PyPI version](https://img.shields.io/pypi/v/fast-a11y-py)](https://pypi.org/project/fast-a11y-py/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/fast-a11y-py)](https://pypi.org/project/fast-a11y-py/)
+[![License](https://img.shields.io/pypi/l/fast-a11y-py)](https://pypi.org/project/fast-a11y-py/)
+[![Python versions](https://img.shields.io/pypi/pyversions/fast-a11y-py)](https://pypi.org/project/fast-a11y-py/)
+[![CI](https://github.com/probeo-io/fast-a11y-py/actions/workflows/ci.yml/badge.svg)](https://github.com/probeo-io/fast-a11y-py/actions/workflows/ci.yml)
+
 Fast, zero-DOM accessibility checker with **axe-core compatible output**. Runs on raw HTML using static analysis -- no browser, no Selenium, no Playwright.
 
 ## Why?
@@ -19,7 +25,7 @@ axe-core is the gold standard for accessibility testing, but it requires a full 
 ## Install
 
 ```bash
-pip install fast-a11y
+pip install fast-a11y-py
 ```
 
 ## Usage
@@ -158,6 +164,10 @@ Same output format. Synchronous. No browser. 100x less memory.
 |---|---|
 | [@probeo/fast-a11y](https://github.com/probeo-io/fast-a11y) | TypeScript version of this package |
 | [workflow-py](https://github.com/probeo-io/workflow-py) | Stage-based pipeline engine -- use fast-a11y as a step |
+
+## Support
+
+If fast-a11y is useful to you, consider giving it a star. It helps others discover the project.
 
 ## License
 
