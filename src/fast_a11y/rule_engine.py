@@ -37,13 +37,20 @@ class RuleRunResult:
     check_details: dict[int, NodeCheckDetail] = field(default_factory=dict)
 
 
+@dataclass
+class RuleContext:
+    """Optional context passed to rules — carries data beyond the HTML tree."""
+
+    external_stylesheets: list[str] = field(default_factory=list)
+
+
 class RuleCheck(Protocol):
     """Protocol for a rule implementation."""
 
     @property
     def rule_id(self) -> str: ...
 
-    def run(self, nodes: list[FastNode], all_nodes: list[FastNode]) -> RuleRunResult: ...
+    def run(self, nodes: list[FastNode], all_nodes: list[FastNode], context: RuleContext | None = None) -> RuleRunResult: ...
 
 
 def build_node_result(
@@ -124,6 +131,7 @@ def run_rules(
     rules: list[RuleCheck],
     all_nodes: list[FastNode],
     options: RunOptions | None = None,
+    context: RuleContext | None = None,
 ) -> dict[str, list[RuleResult]]:
     """Run all registered rules and produce categorized results."""
     passes: list[RuleResult] = []
@@ -152,7 +160,12 @@ def run_rules(
             if rule_config and not rule_config["enabled"]:
                 continue
 
-        result = rule.run(all_nodes, all_nodes)
+        import inspect
+        sig = inspect.signature(rule.run)
+        if "context" in sig.parameters:
+            result = rule.run(all_nodes, all_nodes, context)
+        else:
+            result = rule.run(all_nodes, all_nodes)
 
         # Build node results for violations
         violation_nodes = [
