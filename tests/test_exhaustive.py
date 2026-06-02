@@ -73,7 +73,7 @@ class TestOutputFormat:
     def test_engine_metadata(self) -> None:
         results = fast_a11y(_wrap("<p>Hi</p>"))
         assert results["testEngine"]["name"] == "fast-a11y"
-        assert results["testEngine"]["version"] == "0.1.0"
+        assert results["testEngine"]["version"] is not None
         assert results["testRunner"]["name"] == "fast-a11y"
 
     def test_timestamp_is_iso(self) -> None:

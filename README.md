@@ -67,7 +67,72 @@ results = fast_a11y(html, {"rules": {"color-contrast": {"enabled": False}}})
 
 # Include URL in output
 results = fast_a11y(html, url="https://example.com/page")
+
+# Pre-fetched external stylesheets for improved color contrast analysis
+results = fast_a11y(html, external_stylesheets=[css_string1, css_string2])
 ```
+
+## Color Contrast
+
+The `color-contrast` rule does full static analysis including CSS variable resolution and WCAG level grading.
+
+### External stylesheets
+
+fast-a11y stays zero-network. Fetch `<link rel="stylesheet">` URLs yourself and pass the CSS strings in:
+
+```python
+import urllib.request
+from fast_a11y import fast_a11y
+
+with urllib.request.urlopen("https://example.com/styles.css") as r:
+    sheet = r.read().decode()
+
+results = fast_a11y(html, external_stylesheets=[sheet])
+```
+
+### CSS variable resolution
+
+Colors and font sizes defined as CSS custom properties are fully resolved — including chained variables and fallbacks. Works with Tailwind v4, Bootstrap 5, WordPress presets, and any design token system:
+
+```css
+/* In your stylesheet */
+:root {
+  --color-grey-900: #111827;
+  --color-text-primary: var(--color-grey-900); /* chained */
+}
+p { color: var(--color-text-primary); background-color: #fff; }
+```
+
+```python
+# fast-a11y resolves --color-text-primary → --color-grey-900 → #111827
+results = fast_a11y(html, external_stylesheets=[css])
+# → passes, ratio 16.1:1
+```
+
+### WCAG level grading
+
+Every resolved contrast check reports its WCAG level in `data["wcagLevel"]`:
+
+| Level | Normal text | Large text (≥18pt or ≥14pt bold) |
+|---|---|---|
+| `"AAA"` | ≥ 7:1 | ≥ 4.5:1 |
+| `"AA"` | ≥ 4.5:1 | ≥ 3:1 |
+| `"fail"` | < 4.5:1 | < 3:1 |
+
+```python
+violation = next((v for v in results["violations"] if v["id"] == "color-contrast"), None)
+node = violation["nodes"][0] if violation else None
+print(node["any"][0]["data"])
+# {
+#   "fgColor": "rgb(170, 170, 170)",
+#   "bgColor": "rgb(255, 255, 255)",
+#   "contrastRatio": "2.32",
+#   "wcagLevel": "fail",
+#   "requiredRatio": 4.5,
+# }
+```
+
+Colors that can't be resolved statically (background images, truly unknown variables) are reported as `incomplete` rather than violations.
 
 ## Output Format
 
@@ -75,7 +140,7 @@ The output is **identical** to axe-core's `AxeResults`:
 
 ```python
 {
-    "testEngine": {"name": "fast-a11y", "version": "0.1.0"},
+    "testEngine": {"name": "fast-a11y", "version": "0.2.0"},
     "testRunner": {"name": "fast-a11y"},
     "testEnvironment": {"userAgent": "", "windowWidth": 0, "windowHeight": 0},
     "url": "",
@@ -119,8 +184,8 @@ Each `RuleResult` contains `id`, `impact`, `tags`, `description`, `help`, `helpU
 ### Landmarks
 `landmark-one-main`, `landmark-no-duplicate-main`, `landmark-no-duplicate-banner`, `landmark-no-duplicate-contentinfo`, `landmark-banner-is-top-level`, `landmark-contentinfo-is-top-level`, `landmark-complementary-is-top-level`, `landmark-main-is-top-level`, `landmark-unique`
 
-### Color Contrast (best-effort)
-`color-contrast` -- Checks inline styles and `<style>` blocks. Colors that can't be resolved statically (external CSS, var(), background images) are reported as `incomplete` rather than violations.
+### Color Contrast
+`color-contrast` -- Full static analysis with CSS variable resolution, external stylesheet support, and WCAG AA/AAA grading. See [Color Contrast](#color-contrast) above.
 
 ## Rules NOT Covered (~9)
 

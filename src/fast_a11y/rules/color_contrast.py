@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from ..rule_engine import NodeCheckDetail, RuleCheck, RuleRunResult, make_check
+from ..rule_engine import NodeCheckDetail, RuleCheck, RuleContext, RuleRunResult, make_check
 from ..tree import FastNode, TextNode, get_text_content, is_hidden_or_ancestor_hidden
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -101,11 +101,53 @@ def _clamp255(n: int) -> int:
     return max(0, min(255, n))
 
 
-def _parse_color(color: str) -> RGBA | None:
+# ═══════════════════════════════════════════════════════════════════════
+#  CSS variable resolution
+# ═══════════════════════════════════════════════════════════════════════
+
+def _resolve_var_in_string(value: str, var_map: dict[str, str]) -> str:
+    """Replace var() references in a CSS value string using the resolved variable map."""
+    def replace(m: re.Match[str]) -> str:
+        name = m.group(1).strip()
+        fallback = (m.group(2) or "").strip()
+        return var_map.get(name, fallback)
+    return re.sub(r"var\(\s*(--[\w-]+)\s*(?:,\s*([^)]+))?\s*\)", replace, value)
+
+
+def _build_variable_map(all_nodes: list[FastNode], extra_css: list[str] | None = None) -> dict[str, str]:
+    """Build a map of CSS custom property name to resolved value from all CSS sources."""
+    var_map: dict[str, str] = {}
+    style_css = [get_text_content(n) for n in all_nodes if n.tag == "style"]
+    for css in style_css + (extra_css or []):
+        for _, props in _parse_style_sheet(css):
+            for prop, val in props.items():
+                if prop.startswith("--"):
+                    var_map[prop] = val.strip()
+    for _ in range(5):
+        changed = False
+        for key, val in list(var_map.items()):
+            if "var(" not in val:
+                continue
+            resolved = _resolve_var_in_string(val, var_map)
+            if resolved != val:
+                var_map[key] = resolved
+                changed = True
+        if not changed:
+            break
+    return var_map
+
+
+def _parse_color(color: str, var_map: dict[str, str] | None = None) -> RGBA | None:
     """Parse a CSS color string into RGBA. Returns None if unparseable."""
     if not color:
         return None
     c = color.strip().lower()
+    if "var(" in c:
+        if var_map is None:
+            return None
+        c = _resolve_var_in_string(c, var_map).strip().lower()
+        if "var(" in c:
+            return None
     if c in NAMED_COLORS:
         return NAMED_COLORS[c]
     if c in ("currentcolor", "inherit", "initial", "unset", "revert"):
@@ -268,7 +310,7 @@ def _get_inline_style_property(style: str, prop: str) -> str | None:
     return m.group(1).strip() if m else None
 
 
-def _build_style_map(all_nodes: list[FastNode]) -> dict[int, dict[str, str]]:
+def _build_style_map(all_nodes: list[FastNode], extra_css: list[str] | None = None) -> dict[int, dict[str, str]]:
     style_map: dict[int, dict[str, str]] = {}
     style_rules: list[tuple[str, dict[str, str]]] = []
     for node in all_nodes:
@@ -276,6 +318,8 @@ def _build_style_map(all_nodes: list[FastNode]) -> dict[int, dict[str, str]]:
             text = get_text_content(node)
             if text:
                 style_rules.extend(_parse_style_sheet(text))
+    for css in (extra_css or []):
+        style_rules.extend(_parse_style_sheet(css))
     for selector, properties in style_rules:
         for node in all_nodes:
             if _matches_simple_selector(node, selector):
@@ -296,7 +340,9 @@ def _extract_bg_color(bg: str | None) -> str | None:
 
 
 def _resolve_styles(
-    node: FastNode, style_map: dict[int, dict[str, str]]
+    node: FastNode,
+    style_map: dict[int, dict[str, str]],
+    var_map: dict[str, str] | None = None,
 ) -> tuple[RGBA | None, RGBA | None, str | None, str | None]:
     """Resolve effective color/background for a node. Returns (color, bg, fontSize, fontWeight)."""
     color: RGBA | None = None
@@ -315,7 +361,7 @@ def _resolve_styles(
         sheet_color = sheet_styles.get("color")
         color_val = inline_color or sheet_color
         if color_val:
-            parsed = _parse_color(color_val)
+            parsed = _parse_color(color_val, var_map)
             if parsed:
                 color = parsed
             elif color_val not in ("inherit", "initial", "unset"):
@@ -326,21 +372,19 @@ def _resolve_styles(
         sheet_bg_short = sheet_styles.get("background")
         bg_val = inline_bg or sheet_bg or _extract_bg_color(inline_bg_short) or _extract_bg_color(sheet_bg_short)
         if bg_val:
-            parsed = _parse_color(bg_val)
+            parsed = _parse_color(bg_val, var_map)
             if parsed:
                 bg = parsed
         inline_fs = _get_inline_style_property(inline, "font-size")
         sheet_fs = sheet_styles.get("font-size")
-        if inline_fs:
-            font_size = inline_fs
-        elif sheet_fs:
-            font_size = sheet_fs
+        raw_fs = inline_fs or sheet_fs
+        if raw_fs:
+            font_size = _resolve_var_in_string(raw_fs, var_map) if (var_map and "var(" in raw_fs) else raw_fs
         inline_fw = _get_inline_style_property(inline, "font-weight")
         sheet_fw = sheet_styles.get("font-weight")
-        if inline_fw:
-            font_weight = inline_fw
-        elif sheet_fw:
-            font_weight = sheet_fw
+        raw_fw = inline_fw or sheet_fw
+        if raw_fw:
+            font_weight = _resolve_var_in_string(raw_fw, var_map) if (var_map and "var(" in raw_fw) else raw_fw
     return color, bg, font_size, font_weight
 
 
@@ -410,6 +454,17 @@ def _is_large_text(font_size: str | None, font_weight: str | None) -> bool:
     return False
 
 
+def _wcag_level(ratio: float, large: bool) -> str:
+    """Return the highest WCAG level met: 'AAA', 'AA', or 'fail'."""
+    aaa_threshold = 4.5 if large else 7.0
+    aa_threshold = 3.0 if large else 4.5
+    if ratio >= aaa_threshold:
+        return "AAA"
+    if ratio >= aa_threshold:
+        return "AA"
+    return "fail"
+
+
 SKIP_TAGS = frozenset({
     "html", "head", "body", "script", "style", "link", "meta", "title",
     "br", "hr", "img", "input", "select", "textarea", "button", "svg",
@@ -421,9 +476,11 @@ SKIP_TAGS = frozenset({
 class _ColorContrast:
     rule_id = "color-contrast"
 
-    def run(self, nodes: list[FastNode], all_nodes: list[FastNode]) -> RuleRunResult:
+    def run(self, nodes: list[FastNode], all_nodes: list[FastNode], context: RuleContext | None = None) -> RuleRunResult:
         result = RuleRunResult()
-        style_map = _build_style_map(all_nodes)
+        extra_css = context.external_stylesheets if context else []
+        style_map = _build_style_map(all_nodes, extra_css)
+        var_map = _build_variable_map(all_nodes, extra_css)
         DEFAULT_FG: RGBA = (0, 0, 0, 1.0)
         DEFAULT_BG: RGBA = (255, 255, 255, 1.0)
 
@@ -438,7 +495,7 @@ class _ColorContrast:
             )
             if not has_direct_text:
                 continue
-            fg, bg, font_size, font_weight = _resolve_styles(node, style_map)
+            fg, bg, font_size, font_weight = _resolve_styles(node, style_map, var_map)
             if not fg and not bg:
                 if style_map:
                     continue
@@ -447,7 +504,6 @@ class _ColorContrast:
             bg_color = bg or DEFAULT_BG
             if fg_color[3] == 0:
                 continue
-            # Check for background images
             has_bg_image = False
             current: FastNode | None = node
             while current:
@@ -470,30 +526,30 @@ class _ColorContrast:
                 continue
             ratio = _contrast_ratio(fg_color, bg_color)
             large = _is_large_text(font_size, font_weight)
-            required_ratio = 3.0 if large else 4.5
+            level = _wcag_level(ratio, large)
             ratio_str = f"{ratio:.2f}"
             fg_str = f"rgb({fg_color[0]}, {fg_color[1]}, {fg_color[2]})"
             bg_str = f"rgb({bg_color[0]}, {bg_color[1]}, {bg_color[2]})"
-            large_text = " [large text]" if large else ""
-            if ratio >= required_ratio:
+            size_label = " [large text]" if large else ""
+            base_data = {"fgColor": fg_str, "bgColor": bg_str, "contrastRatio": ratio_str,
+                         "wcagLevel": level, "fontSize": font_size, "fontWeight": font_weight}
+            if level != "fail":
                 result.passes.append(node)
                 result.check_details[id(node)] = NodeCheckDetail(
                     any=[make_check("color-contrast", "serious",
-                        f"Element has sufficient contrast ratio of {ratio_str}:1"
-                        f" (foreground: {fg_str}, background: {bg_str}){large_text}",
-                        {"fgColor": fg_str, "bgColor": bg_str, "contrastRatio": ratio_str,
-                         "fontSize": font_size, "fontWeight": font_weight})]
+                        f"Element has sufficient contrast ratio of {ratio_str}:1 (WCAG {level})"
+                        f" (foreground: {fg_str}, background: {bg_str}){size_label}",
+                        base_data)]
                 )
             else:
+                required = 3.0 if large else 4.5
                 result.violations.append(node)
                 result.check_details[id(node)] = NodeCheckDetail(
                     any=[make_check("color-contrast", "serious",
                         f"Element has insufficient contrast ratio of {ratio_str}:1"
                         f" (foreground: {fg_str}, background: {bg_str})"
-                        f". Expected ratio of {required_ratio}:1{large_text}",
-                        {"fgColor": fg_str, "bgColor": bg_str, "contrastRatio": ratio_str,
-                         "expectedRatio": required_ratio, "fontSize": font_size,
-                         "fontWeight": font_weight})]
+                        f". Required {required}:1 for WCAG AA{size_label}",
+                        {**base_data, "requiredRatio": required})]
                 )
         return result
 
